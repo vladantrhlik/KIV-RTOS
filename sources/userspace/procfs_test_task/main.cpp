@@ -29,7 +29,7 @@ int main(int argc, char** argv)
 
 	sleep(0x800, 0x800);
 
-	uint32_t proc_file = open("PROC:1", NFile_Open_Mode::Read_Only);
+	uint32_t proc_file = open("PROC:1/stats", NFile_Open_Mode::Read_Only);
 	char buffer[32];
 
 	while (true)
