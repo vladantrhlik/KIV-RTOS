@@ -1,3 +1,18 @@
+# Implementace PROC FS
+
+Plán struktury:
+ - `1/`
+ - `2/`
+ - ...
+ - `n/` - info k tasku s PID=n
+    - `n_fd` - počet otevřených souborů
+    - `n_page` - počet alokovaných stránek
+ - `sched` - počet runnable, blocked tasků
+ - `tasks` - aktuální počet tasků, pidy tasků (?) apod.
+
+každý task bude mít vlastní adresář / soubor (jednodušší)
+
+
 # KIV-RTOS
 An educational operating system for bare-metal Raspberry Pi Zero W (BCM2835-based board).
 
