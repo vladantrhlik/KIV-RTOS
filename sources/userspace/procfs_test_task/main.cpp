@@ -6,6 +6,7 @@
 
 #include <drivers/bridges/uart_defs.h>
 #include <drivers/gpio.h>
+#include <drivers/uart.h>
 
 #include <process/process_manager.h>
 
@@ -20,6 +21,11 @@ const char* messages[] = {
 	"gcc -o",
 };
 
+static void fputs(uint32_t file, const char* string)
+{
+	write(file, string, strlen(string));
+}
+
 int main(int argc, char** argv)
 {
 	COLED_Display disp("DEV:oled");
@@ -27,20 +33,25 @@ int main(int argc, char** argv)
 	disp.Put_String(10, 10, "PROC FS init...");
 	disp.Flip();
 
-	sleep(0x800, 0x800);
+	uint32_t log = pipe("log", 32);
 
-	uint32_t proc_file = open("PROC:1/stats", NFile_Open_Mode::Read_Only);
+	uint32_t proc_file = open("PROC:ahoj", NFile_Open_Mode::Read_Only);
 	char buffer[32];
+	volatile int tim;
 
 	while (true)
 	{
-		read(proc_file, buffer, 32);
+		bzero(buffer, 32);
+		if (proc_file > 0) {
+			read(proc_file, buffer, 32);
+			fputs(log, buffer);
+			fputs(log, "file found!");
+		} else {
+			fputs(log, "no file found");
+		}
 
-		disp.Clear(false);
-		disp.Put_String(0, 0, buffer);
-		disp.Flip();
 
-		sleep(0x4000, 0x800); // TODO: z tohohle bude casem cekani na podminkove promenne (na eventu) s timeoutem
+		sleep(0x100);
 	}
 
     return 0;
