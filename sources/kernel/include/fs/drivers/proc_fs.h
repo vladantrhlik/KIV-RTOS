@@ -7,18 +7,18 @@
 #include <stdstring.h>
 #include <process/process_manager.h>
 
-enum NProcFS_PID_Type {
-    PID,
-    STATUS,
-    STATE,
-    FD
+enum NProcFS_PID_Type
+{
+    PID,            // PID tasku
+    STATE,          // stav tasku (runnable, blocked, ...)
+    FD,             // pocet otevrenych souboru
+    STATUS          // souhrn vsech statistik
 };
 
-// virtualni soubor pro proces
+// virtualni soubor pro proces s PIDem
 class CProcFS_PID_File final : public IFile
 {
     public:
-
         CProcFS_PID_File(int pid, NProcFS_PID_Type type) : IFile(NFile_Type_Major::Character), _pid(pid), _type(type) { }
 
         ~CProcFS_PID_File()
@@ -31,9 +31,10 @@ class CProcFS_PID_File final : public IFile
             TTask_Struct *task = sProcessMgr.Get_Process_By_PID(_pid);
             if (!task) return 0;
 
-            // state to string
+            // prevod statu do citelne formy
             char *state_str;
-            if (_type == STATE || _type == STATUS) {
+            if (_type == STATE || _type == STATUS) 
+            {
                 switch (task->state)
                 {
                     case NTask_State::New: state_str = const_cast<char*>("new"); break;
@@ -49,12 +50,12 @@ class CProcFS_PID_File final : public IFile
                 }
             }
 
-            // count opened files
+            // pocet otevrenych souboru
             uint8_t f = 0;
-            if (_type == STATUS || _type == FD) {
-                for (int i = 0; i < Max_Process_Opened_Files; i++) {
+            if (_type == STATUS || _type == FD)
+            {
+                for (int i = 0; i < Max_Process_Opened_Files; i++)
                     if (task->opened_files[i] != nullptr) f++;
-                }
             }
 
             char buf[64];
@@ -93,13 +94,16 @@ class CProcFS_PID_File final : public IFile
         NProcFS_PID_Type _type;
 };
 
-enum NProcFS_Status_Type {
-    SCHED = 0,
-    TASKS,
-    TICKS
+enum NProcFS_Status_Type
+{
+    SCHED = 0,                  // pocty procesu v ruznych stavech
+    TASKS,                      // celkovy pocet tasku
+    TICKS                       // pocet tiku od startu
 };
 
-class CProcFS_Status_File final : public IFile {
+// virtualni nePIDový soubor
+class CProcFS_Status_File final : public IFile
+{
     public:
 
         CProcFS_Status_File(NProcFS_Status_Type type) : IFile(NFile_Type_Major::Character), _type(type) { }
@@ -109,14 +113,17 @@ class CProcFS_Status_File final : public IFile {
             Close();
         }
 
-        virtual uint32_t Read(char* buffer, uint32_t num) override {
+        virtual uint32_t Read(char* buffer, uint32_t num) override
+        {
             char buf[64];
             bzero(buf, 64);
 
+            // ziskani poctu bezicich, blokovanych atd. procesu
             CProcess_Summary_Info info;
             sProcessMgr.Get_Scheduler_Info(NGet_Sched_Info_Type::Process_Summary, &info);
 
-            switch (_type) {
+            switch (_type)
+            {
                 case SCHED:
                     strcat(buf, "runnable: ");
                     itoa(info.running, buf + strlen(buf), 10);
@@ -144,39 +151,44 @@ class CProcFS_Status_File final : public IFile {
         NProcFS_Status_Type _type;
 };
 
-// driver for proc filesystem 
+// driver Proc FS (PROC:)
 class CProc_FS_Driver : public IFilesystem_Driver
 {
 	public:
-		virtual void On_Register() override
-        {
-            //
-        }
+        virtual void On_Register() override { };
 
         virtual IFile* Open_File(const char* path, NFile_Open_Mode mode) override
         {
-            // check if all nums -> PID
+            if (mode != NFile_Open_Mode::Read_Only)
+                return nullptr;
+
+            // validace PIDu (cislo)
             bool is_pid = true;
             char *s = const_cast<char*>(path);
-            while (*s && (*s) != '/') {
+            while (*s && (*s) != '/')
+            {
                 if (*s < '0' || *s > '9') is_pid = false;
                 s++;
             }
             
-            bool self = strncmp(path, "self", 4) == 0;
-            if (is_pid || self ) {
-                *s++ = '\0'; // end pid string (replace '/') for atoi
+            bool self = strncmp(path, "self", 4) == 0; // self je taky PID, jen aktualniho procesu
+            if (is_pid || self )
+            {
+                *s++ = '\0'; // ukonceni pid retezce (misto '/') pro atoi()
 
-                // resolve pid
+                // resolve pid + task
                 uint32_t pid = 0;
                 TTask_Struct *task = nullptr;
-                if (self) {
+                if (self)
+                {
                     task = sProcessMgr.Get_Current_Process();
                     if (!task) return nullptr;
                     pid = task->pid;
-                } else {
+                }
+                else
+                {
                     pid = atoi(path);
-                    // test if valid pid
+                    // validace PIDu
                     task = sProcessMgr.Get_Process_By_PID(pid);
                     if (!task) return nullptr;
                 }
@@ -187,7 +199,9 @@ class CProc_FS_Driver : public IFilesystem_Driver
                 if (strncmp(s, "state", 5) == 0) return new CProcFS_PID_File(pid, NProcFS_PID_Type::STATE);
 
                 return nullptr;
-            } else {
+            }
+            else
+            {
                 if (strncmp(path, "sched", 5) == 0) return new CProcFS_Status_File(NProcFS_Status_Type::SCHED);
                 if (strncmp(path, "tasks", 5) == 0) return new CProcFS_Status_File(NProcFS_Status_Type::TASKS);
                 if (strncmp(path, "ticks", 5) == 0) return new CProcFS_Status_File(NProcFS_Status_Type::TICKS);

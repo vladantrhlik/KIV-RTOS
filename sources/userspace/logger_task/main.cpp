@@ -48,6 +48,18 @@ int main(int argc, char** argv)
 			itoa(tick, tickbuf, 16);
 			fputs(uart_file, tickbuf);
 			fputs(uart_file, "]: ");
+			// check if there's new line -> \r\n after timestamp
+			bool nl = false;
+			char *c = buf;
+			while (*c) {
+				if (*c == '\n' || *c == '\r') {
+					nl = true;
+					break;
+				}
+				c++;
+			}
+			if (nl) fputs(uart_file, "\r\n");
+
 			fputs(uart_file, buf);
 		}
 	}

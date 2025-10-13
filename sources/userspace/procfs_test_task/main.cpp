@@ -45,7 +45,10 @@ int main(int argc, char** argv)
 	uint32_t proc1_status = open("PROC:1/status", NFile_Open_Mode::Read_Only);
 	uint32_t proc1_state = open("PROC:1/state", NFile_Open_Mode::Read_Only);
 
-	uint32_t procs[] = {proc_pid, proc_fd, proc_state, proc_status, proc1_pid, proc1_fd, proc1_state, proc1_status};
+	uint32_t sched = open("PROC:sched", NFile_Open_Mode::Read_Only);
+	uint32_t ticks = open("PROC:ticks", NFile_Open_Mode::Read_Only);
+
+	uint32_t procs[] = {proc_pid, proc_fd, proc_state, proc_status, proc1_pid, proc1_fd, proc1_state, proc1_status, sched, ticks};
 	uint32_t proc_count = sizeof(procs) / sizeof(uint32_t);
 
 	char buffer[64];
@@ -58,6 +61,7 @@ int main(int argc, char** argv)
 			read(procs[i], buffer, 64);
 			fputs(log, buffer);
 		}
+		fputs(log, "--------");
 
 		sleep(0x500);
 	}
