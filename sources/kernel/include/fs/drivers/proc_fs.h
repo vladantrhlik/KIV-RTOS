@@ -69,7 +69,8 @@ class CProc_Status_File final : public IFile {
     public:
         enum StatusType {
             SCHED = 0,
-            TASKS
+            TASKS,
+            TICKS
         };
 
         CProc_Status_File(StatusType type) : IFile(NFile_Type_Major::Character), _type(type) { }
@@ -98,6 +99,12 @@ class CProc_Status_File final : public IFile {
                 case TASKS:
                     strcat(buf, "task count: ");
                     itoa(info.total, buf + strlen(buf), 10);
+                    break;
+                case TICKS:
+                    uint32_t ticks;
+                    sProcessMgr.Get_Scheduler_Info(NGet_Sched_Info_Type::Tick_Count, &ticks);
+                    strcat(buf, "ticks: ");
+                    itoa(ticks, buf + strlen(buf), 10);
                     break;
             };
 
@@ -140,11 +147,12 @@ class CProc_FS_Driver : public IFilesystem_Driver
             } else {
                 if (strncmp(path, "sched", 5) == 0) return new CProc_Status_File(CProc_Status_File::StatusType::SCHED);
                 if (strncmp(path, "tasks", 5) == 0) return new CProc_Status_File(CProc_Status_File::StatusType::TASKS);
+                if (strncmp(path, "ticks", 5) == 0) return new CProc_Status_File(CProc_Status_File::StatusType::TICKS);
                 if (strncmp(path, "self", 4) == 0) {
                     TTask_Struct *self = sProcessMgr.Get_Current_Process();
                     if (!self) return nullptr;
                     return new CProc_PID_File(self->pid);
-                }
+                } 
             }
 
             return nullptr;

@@ -9,6 +9,8 @@ Plán struktury:
     - `n_page` - počet alokovaných stránek
  - `sched` - počet runnable, blocked tasků
  - `tasks` - aktuální počet tasků, pidy tasků (?) apod.
+ - `self` - aktuální proces (stejný výstup jako [aktuální pid]/)
+ - `ticks` - počet tiků od startu
 
 každý task bude mít vlastní adresář / soubor (jednodušší)
 

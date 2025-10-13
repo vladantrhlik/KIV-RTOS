@@ -39,15 +39,16 @@ int main(int argc, char** argv)
 	uint32_t self = open("PROC:self", NFile_Open_Mode::Read_Only);
 	uint32_t tasks = open("PROC:tasks", NFile_Open_Mode::Read_Only);
 	uint32_t sched = open("PROC:sched", NFile_Open_Mode::Read_Only);
+	uint32_t ticks = open("PROC:ticks", NFile_Open_Mode::Read_Only);
 
-	uint32_t procs[] = {proc1, self, tasks, sched};
+	uint32_t procs[] = {proc1, self, tasks, sched, ticks};
 
 	char buffer[64];
 	volatile int tim;
 
 	while (true)
 	{
-		for (int i = 0; i < 4; i++) {
+		for (int i = 0; i < 5; i++) {
 			bzero(buffer, 64);
 			read(procs[i], buffer, 64);
 			fputs(log, buffer);
