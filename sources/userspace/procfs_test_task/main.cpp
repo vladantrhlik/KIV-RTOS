@@ -35,7 +35,7 @@ int main(int argc, char** argv)
 
 	uint32_t log = pipe("log", 32);
 
-	uint32_t proc_file = open("PROC:tasks", NFile_Open_Mode::Read_Only);
+	uint32_t proc_file = open("PROC:1", NFile_Open_Mode::Read_Only);
 	char buffer[64];
 	volatile int tim;
 

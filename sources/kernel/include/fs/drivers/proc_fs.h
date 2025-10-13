@@ -22,9 +22,35 @@ class CProc_PID_File final : public IFile
 
         virtual uint32_t Read(char* buffer, uint32_t num) override
         {
-            memset(buffer, 0, num);
-            strncpy(buffer, "Ahoj z procesu: ", 16);
-            itoa(_pid, buffer + 16, 10);
+            TTask_Struct *task = sProcessMgr.Get_Process_By_PID(_pid);
+            if (!task) return 0;
+
+            bzero(buffer, num);
+            strcat(buffer, "PID: ");
+            itoa(_pid, buffer + strlen(buffer), 10);
+            // state
+            strcat(buffer, "\nstate: ");
+            switch (task->state)
+            {
+                case NTask_State::New: strcat(buffer, "new"); break;
+                case NTask_State::Runnable: 
+                case NTask_State::Running: 
+                    strcat(buffer, "runnable"); 
+                    break;
+                case NTask_State::Interruptable_Sleep: strcat(buffer, "sleep"); break;
+                case NTask_State::Blocked: strcat(buffer, "blocked"); break;
+                case NTask_State::Zombie: strcat(buffer, "zombie"); break;
+                default:
+                    break;
+            }
+            // count opened files
+            uint8_t f = 0;
+            for (int i = 0; i < Max_Process_Opened_Files; i++) {
+                if (task->opened_files[i] != nullptr) f++;
+            }
+
+            strcat(buffer, "\nopended files: ");
+            itoa(f, buffer + strlen(buffer), 10);
             return 1;
         }
 };
@@ -58,7 +84,6 @@ class CProc_Status_File final : public IFile {
                     itoa(info.blocked, buf + strlen(buf), 10);
                     strcat(buf, "\nzombie: ");
                     itoa(info.zombie, buf + strlen(buf), 10);
-
                     break;
                 case TASKS:
                     strcat(buf, "task count: ");
