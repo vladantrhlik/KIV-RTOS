@@ -7,20 +7,21 @@
 #include <stdstring.h>
 #include <process/process_manager.h>
 
+enum NProcFS_PID_Type {
+    PID,
+    STATUS,
+    STATE,
+    FD
+};
+
 // virtualni soubor pro proces
-class CProc_PID_File final : public IFile
+class CProcFS_PID_File final : public IFile
 {
     public:
-        enum Type {
-            PID,
-            STATUS,
-            STATE,
-            FD
-        };
 
-        CProc_PID_File(int pid, Type type) : IFile(NFile_Type_Major::Character), _pid(pid), _type(type) { }
+        CProcFS_PID_File(int pid, NProcFS_PID_Type type) : IFile(NFile_Type_Major::Character), _pid(pid), _type(type) { }
 
-        ~CProc_PID_File()
+        ~CProcFS_PID_File()
         {
             Close();
         }
@@ -89,20 +90,21 @@ class CProc_PID_File final : public IFile
 
     private:
         int _pid;
-        Type _type;
+        NProcFS_PID_Type _type;
 };
 
-class CProc_Status_File final : public IFile {
+enum NProcFS_Status_Type {
+    SCHED = 0,
+    TASKS,
+    TICKS
+};
+
+class CProcFS_Status_File final : public IFile {
     public:
-        enum Type {
-            SCHED = 0,
-            TASKS,
-            TICKS
-        };
 
-        CProc_Status_File(Type type) : IFile(NFile_Type_Major::Character), _type(type) { }
+        CProcFS_Status_File(NProcFS_Status_Type type) : IFile(NFile_Type_Major::Character), _type(type) { }
 
-        ~CProc_Status_File()
+        ~CProcFS_Status_File()
         {
             Close();
         }
@@ -139,7 +141,7 @@ class CProc_Status_File final : public IFile {
             return 1;
         }
     private:
-        Type _type;
+        NProcFS_Status_Type _type;
 };
 
 // driver for proc filesystem 
@@ -179,16 +181,16 @@ class CProc_FS_Driver : public IFilesystem_Driver
                     if (!task) return nullptr;
                 }
 
-                if (strncmp(s, "pid", 3) == 0) return new CProc_PID_File(pid, CProc_PID_File::Type::PID);
-                if (strncmp(s, "fd", 2) == 0) return new CProc_PID_File(pid, CProc_PID_File::Type::FD);
-                if (strncmp(s, "status", 6) == 0) return new CProc_PID_File(pid, CProc_PID_File::Type::STATUS);
-                if (strncmp(s, "state", 5) == 0) return new CProc_PID_File(pid, CProc_PID_File::Type::STATE);
+                if (strncmp(s, "pid", 3) == 0) return new CProcFS_PID_File(pid, NProcFS_PID_Type::PID);
+                if (strncmp(s, "fd", 2) == 0) return new CProcFS_PID_File(pid, NProcFS_PID_Type::FD);
+                if (strncmp(s, "status", 6) == 0) return new CProcFS_PID_File(pid, NProcFS_PID_Type::STATUS);
+                if (strncmp(s, "state", 5) == 0) return new CProcFS_PID_File(pid, NProcFS_PID_Type::STATE);
 
                 return nullptr;
             } else {
-                if (strncmp(path, "sched", 5) == 0) return new CProc_Status_File(CProc_Status_File::Type::SCHED);
-                if (strncmp(path, "tasks", 5) == 0) return new CProc_Status_File(CProc_Status_File::Type::TASKS);
-                if (strncmp(path, "ticks", 5) == 0) return new CProc_Status_File(CProc_Status_File::Type::TICKS);
+                if (strncmp(path, "sched", 5) == 0) return new CProcFS_Status_File(NProcFS_Status_Type::SCHED);
+                if (strncmp(path, "tasks", 5) == 0) return new CProcFS_Status_File(NProcFS_Status_Type::TASKS);
+                if (strncmp(path, "ticks", 5) == 0) return new CProcFS_Status_File(NProcFS_Status_Type::TICKS);
             }
 
             return nullptr;
