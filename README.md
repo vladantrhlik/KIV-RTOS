@@ -11,7 +11,7 @@ Plán struktury:
     - [x] `pid` - PID (n)
     - [ ] `page` - počet alokovaných stránek
  - [x] `sched` - počet runnable, blocked tasků
- - [x] `tasks` - aktuální počet tasků, pidy tasků (?) apod.
+ - [x] `tasks` - aktuální počet tasků ~~pidy tasků (?) apod.~~
  - [x] `self` - aktuální proces (stejný výstup jako [aktuální pid]/)
  - [x] `ticks` - počet tiků od startu
 
