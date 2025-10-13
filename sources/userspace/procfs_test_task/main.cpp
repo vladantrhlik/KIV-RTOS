@@ -35,15 +35,22 @@ int main(int argc, char** argv)
 
 	uint32_t log = pipe("log", 32);
 
-	uint32_t proc_file = open("PROC:1", NFile_Open_Mode::Read_Only);
+	uint32_t proc1 = open("PROC:1", NFile_Open_Mode::Read_Only);
+	uint32_t proc2 = open("PROC:2", NFile_Open_Mode::Read_Only);
+	uint32_t proc3 = open("PROC:3", NFile_Open_Mode::Read_Only);
+
+	uint32_t procs[] = {proc1, proc2, proc3};
+
 	char buffer[64];
 	volatile int tim;
 
 	while (true)
 	{
-		bzero(buffer, 64);
-		read(proc_file, buffer, 64);
-		fputs(log, buffer);
+		for (int i = 0; i < 3; i++) {
+			bzero(buffer, 64);
+			read(procs[i], buffer, 64);
+			fputs(log, buffer);
+		}
 
 		sleep(0x100);
 	}

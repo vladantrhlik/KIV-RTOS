@@ -25,32 +25,42 @@ class CProc_PID_File final : public IFile
             TTask_Struct *task = sProcessMgr.Get_Process_By_PID(_pid);
             if (!task) return 0;
 
-            bzero(buffer, num);
-            strcat(buffer, "PID: ");
-            itoa(_pid, buffer + strlen(buffer), 10);
-            // state
-            strcat(buffer, "\nstate: ");
+            // state to string
+            char *state_str;
             switch (task->state)
             {
-                case NTask_State::New: strcat(buffer, "new"); break;
+                case NTask_State::New: state_str = const_cast<char*>("new"); break;
                 case NTask_State::Runnable: 
                 case NTask_State::Running: 
-                    strcat(buffer, "runnable"); 
+                    state_str = const_cast<char*>("runnable"); 
                     break;
-                case NTask_State::Interruptable_Sleep: strcat(buffer, "sleep"); break;
-                case NTask_State::Blocked: strcat(buffer, "blocked"); break;
-                case NTask_State::Zombie: strcat(buffer, "zombie"); break;
+                case NTask_State::Interruptable_Sleep: state_str = const_cast<char*>("sleep"); break;
+                case NTask_State::Blocked: state_str = const_cast<char*>("blocked"); break;
+                case NTask_State::Zombie: state_str = const_cast<char*>("zombie"); break;
                 default:
                     break;
             }
+
             // count opened files
             uint8_t f = 0;
             for (int i = 0; i < Max_Process_Opened_Files; i++) {
                 if (task->opened_files[i] != nullptr) f++;
             }
 
-            strcat(buffer, "\nopended files: ");
-            itoa(f, buffer + strlen(buffer), 10);
+            char buf[64];
+            bzero(buf, 64);
+
+            bzero(buf, num);
+            strcat(buf, "PID: ");
+            itoa(_pid, buf + strlen(buf), 10);
+            strcat(buf, "\nstate: ");
+            strcat(buf, state_str);
+            strcat(buf, "\nopended files: ");
+            itoa(f, buf + strlen(buf), 10);
+
+            int l = strlen(buf);
+            strncpy(buffer, buf, l < num ? l : num);
+
             return 1;
         }
 };
