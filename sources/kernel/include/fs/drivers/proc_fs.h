@@ -88,7 +88,7 @@ class CProc_Status_File final : public IFile {
 
             switch (_type) {
                 case SCHED:
-                    strcat(buf, "\nrunnable: ");
+                    strcat(buf, "runnable: ");
                     itoa(info.running, buf + strlen(buf), 10);
                     strcat(buf, "\nblocked: ");
                     itoa(info.blocked, buf + strlen(buf), 10);
@@ -140,6 +140,11 @@ class CProc_FS_Driver : public IFilesystem_Driver
             } else {
                 if (strncmp(path, "sched", 5) == 0) return new CProc_Status_File(CProc_Status_File::StatusType::SCHED);
                 if (strncmp(path, "tasks", 5) == 0) return new CProc_Status_File(CProc_Status_File::StatusType::TASKS);
+                if (strncmp(path, "self", 4) == 0) {
+                    TTask_Struct *self = sProcessMgr.Get_Current_Process();
+                    if (!self) return nullptr;
+                    return new CProc_PID_File(self->pid);
+                }
             }
 
             return nullptr;
