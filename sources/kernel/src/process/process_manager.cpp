@@ -430,6 +430,38 @@ bool CProcess_Manager::Get_Scheduler_Info(NGet_Sched_Info_Type type, void* targe
             *reinterpret_cast<uint32_t*>(target) = sTimer.Get_Tick_Count();
             break;
         }
+        case NGet_Sched_Info_Type::Process_Summary:
+        {
+            CProcess_List_Node* node = mProcess_List_Head;
+            uint32_t procCnt = 0;
+
+            CProcess_Summary_Info *sum = reinterpret_cast<CProcess_Summary_Info*>(target);
+            bzero(sum, sizeof(CProcess_Summary_Info));
+
+            while (node)
+            {
+                switch (node->task->state)
+                {
+                    case NTask_State::Running:
+                    case NTask_State::Runnable:
+                        sum->running++;
+                        break;
+                    case NTask_State::Blocked:
+                    case NTask_State::Interruptable_Sleep:
+                        sum->blocked++;
+                        break;
+                    case NTask_State::Zombie:
+                        sum->zombie++;
+                        break;
+                    default:
+                        break;
+                }
+                sum->total++;
+                node = node->next;
+            }
+            break;
+        }
+
         default:
             return false;
     }

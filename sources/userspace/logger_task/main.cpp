@@ -26,20 +26,20 @@ int main(int argc, char** argv)
 
 	fputs(uart_file, "UART task starting!");
 
-	char buf[16];
+	char buf[64];
 	char tickbuf[16];
-	bzero(buf, 16);
+	bzero(buf, 64);
 	bzero(tickbuf, 16);
 
 	uint32_t last_tick = 0;
 
-	uint32_t logpipe = pipe("log", 32);
+	uint32_t logpipe = pipe("log", 64);
 
 	while (true)
 	{
 		wait(logpipe, 1, 0x1000);
 
-		uint32_t v = read(logpipe, buf, 15);
+		uint32_t v = read(logpipe, buf, 64);
 		if (v > 0)
 		{
 			buf[v] = '\0';

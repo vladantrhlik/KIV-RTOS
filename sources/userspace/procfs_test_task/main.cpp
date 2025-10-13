@@ -35,21 +35,15 @@ int main(int argc, char** argv)
 
 	uint32_t log = pipe("log", 32);
 
-	uint32_t proc_file = open("PROC:ahoj", NFile_Open_Mode::Read_Only);
-	char buffer[32];
+	uint32_t proc_file = open("PROC:tasks", NFile_Open_Mode::Read_Only);
+	char buffer[64];
 	volatile int tim;
 
 	while (true)
 	{
-		bzero(buffer, 32);
-		if (proc_file > 0) {
-			read(proc_file, buffer, 32);
-			fputs(log, buffer);
-			fputs(log, "file found!");
-		} else {
-			fputs(log, "no file found");
-		}
-
+		bzero(buffer, 64);
+		read(proc_file, buffer, 64);
+		fputs(log, buffer);
 
 		sleep(0x100);
 	}

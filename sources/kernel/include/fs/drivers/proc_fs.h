@@ -13,9 +13,7 @@ class CProc_PID_File final : public IFile
     private:
         int _pid;
     public:
-        CProc_PID_File(int pid) : IFile(NFile_Type_Major::Character), _pid(pid)
-        {
-        }
+        CProc_PID_File(int pid) : IFile(NFile_Type_Major::Character), _pid(pid) { }
 
         ~CProc_PID_File()
         {
@@ -25,10 +23,56 @@ class CProc_PID_File final : public IFile
         virtual uint32_t Read(char* buffer, uint32_t num) override
         {
             memset(buffer, 0, num);
-            strncpy(buffer, "Ahoj z PROCFS: ", 15);
-            itoa(_pid, buffer + 15, 10);
+            strncpy(buffer, "Ahoj z procesu: ", 16);
+            itoa(_pid, buffer + 16, 10);
             return 1;
         }
+};
+
+class CProc_Status_File final : public IFile {
+    public:
+        enum StatusType {
+            SCHED = 0,
+            TASKS
+        };
+
+        CProc_Status_File(StatusType type) : IFile(NFile_Type_Major::Character), _type(type) { }
+
+        ~CProc_Status_File()
+        {
+            Close();
+        }
+
+        virtual uint32_t Read(char* buffer, uint32_t num) override {
+            char buf[64];
+            bzero(buf, 64);
+
+            CProcess_Summary_Info info;
+            sProcessMgr.Get_Scheduler_Info(NGet_Sched_Info_Type::Process_Summary, &info);
+
+            switch (_type) {
+                case SCHED:
+                    strcat(buf, "\nrunnable: ");
+                    itoa(info.running, buf + strlen(buf), 10);
+                    strcat(buf, "\nblocked: ");
+                    itoa(info.blocked, buf + strlen(buf), 10);
+                    strcat(buf, "\nzombie: ");
+                    itoa(info.zombie, buf + strlen(buf), 10);
+
+                    break;
+                case TASKS:
+                    strcat(buf, "task count: ");
+                    itoa(info.total, buf + strlen(buf), 10);
+                    break;
+            };
+
+            int l = strlen(buf);
+            strncpy(buffer, buf, l < num ? l : num);
+
+            return 1;
+        }
+    private:
+        StatusType _type;
 };
 
 // driver for proc filesystem 
@@ -58,6 +102,9 @@ class CProc_FS_Driver : public IFilesystem_Driver
                 } else {
                     return nullptr;
                 }
+            } else {
+                if (strncmp(path, "sched", 5) == 0) return new CProc_Status_File(CProc_Status_File::StatusType::SCHED);
+                if (strncmp(path, "tasks", 5) == 0) return new CProc_Status_File(CProc_Status_File::StatusType::TASKS);
             }
 
             return nullptr;
