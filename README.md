@@ -5,10 +5,11 @@ Plán struktury:
  - `2/`
  - ...
  - [ ] `n/` - info k tasku s PID=n
-    - `status` - shrnutí stavu (human readable)
-    - `fd` - otevřené soubory
-    - `pid` - PID (n)
-    - `page` - počet alokovaných stránek
+    - [x] `status` - shrnutí stavu (human readable)
+    - [x] `state` - stav tasku (runnable, blocked atd)
+    - [ ] `fd` - otevřené soubory (zatim počet)
+    - [x] `pid` - PID (n)
+    - [ ] `page` - počet alokovaných stránek
  - [x] `sched` - počet runnable, blocked tasků
  - [x] `tasks` - aktuální počet tasků, pidy tasků (?) apod.
  - [x] `self` - aktuální proces (stejný výstup jako [aktuální pid]/)
