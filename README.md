@@ -4,13 +4,15 @@ Plán struktury:
  - `1/`
  - `2/`
  - ...
- - `n/` - info k tasku s PID=n
-    - `n_fd` - počet otevřených souborů
-    - `n_page` - počet alokovaných stránek
- - `sched` - počet runnable, blocked tasků
- - `tasks` - aktuální počet tasků, pidy tasků (?) apod.
- - `self` - aktuální proces (stejný výstup jako [aktuální pid]/)
- - `ticks` - počet tiků od startu
+ - [ ] `n/` - info k tasku s PID=n
+    - `status` - shrnutí stavu (human readable)
+    - `fd` - otevřené soubory
+    - `pid` - PID (n)
+    - `page` - počet alokovaných stránek
+ - [x] `sched` - počet runnable, blocked tasků
+ - [x] `tasks` - aktuální počet tasků, pidy tasků (?) apod.
+ - [x] `self` - aktuální proces (stejný výstup jako [aktuální pid]/)
+ - [x] `ticks` - počet tiků od startu
 
 každý task bude mít vlastní adresář / soubor (jednodušší)
 
