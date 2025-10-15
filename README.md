@@ -7,7 +7,8 @@ Plán struktury:
  - [ ] `n/` - info k tasku s PID=n
     - [x] `status` - shrnutí stavu (human readable)
     - [x] `state` - stav tasku (runnable, blocked atd)
-    - [ ] `fd` - otevřené soubory (zatim počet)
+    - [x] `fd_n` - počet otevřených souborů
+    - [x] `fd` - otevřené soubory
     - [x] `pid` - PID (n)
     - [ ] `page` - počet alokovaných stránek
  - [x] `sched` - počet runnable, blocked tasků

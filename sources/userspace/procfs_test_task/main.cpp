@@ -35,30 +35,25 @@ int main(int argc, char** argv)
 
 	uint32_t log = pipe("log", 32);
 
-	uint32_t proc_pid = open("PROC:self/pid", NFile_Open_Mode::Read_Only);
-	uint32_t proc_fd = open("PROC:self/fd", NFile_Open_Mode::Read_Only);
-	uint32_t proc_status = open("PROC:self/status", NFile_Open_Mode::Read_Only);
-	uint32_t proc_state = open("PROC:self/state", NFile_Open_Mode::Read_Only);
+	const char *files[] = {
+		"PROC:self/pid","PROC:self/fd", "PROC:self/fd_n", "PROC:self/status","PROC:self/state","PROC:self/page",
+		"PROC:sched","PROC:ticks" 
+	};
 
-	uint32_t proc1_pid = open("PROC:1/pid", NFile_Open_Mode::Read_Only);
-	uint32_t proc1_fd = open("PROC:1/fd", NFile_Open_Mode::Read_Only);
-	uint32_t proc1_status = open("PROC:1/status", NFile_Open_Mode::Read_Only);
-	uint32_t proc1_state = open("PROC:1/state", NFile_Open_Mode::Read_Only);
+	int file_count = sizeof(files) / sizeof(char*);
+	uint32_t fds[file_count];
 
-	uint32_t sched = open("PROC:sched", NFile_Open_Mode::Read_Only);
-	uint32_t ticks = open("PROC:ticks", NFile_Open_Mode::Read_Only);
-
-	uint32_t procs[] = {proc_pid, proc_fd, proc_state, proc_status, proc1_pid, proc1_fd, proc1_state, proc1_status, sched, ticks};
-	uint32_t proc_count = sizeof(procs) / sizeof(uint32_t);
+	for (int i = 0; i < file_count; i++) fds[i] = open(files[i], NFile_Open_Mode::Read_Only);
 
 	char buffer[64];
 	volatile int tim;
 
 	while (true)
 	{
-		for (int i = 0; i < proc_count; i++) {
+		for (int i = 0; i < file_count; i++) {
 			bzero(buffer, 64);
-			read(procs[i], buffer, 64);
+			read(fds[i], buffer, 64);
+
 			fputs(log, buffer);
 		}
 		fputs(log, "--------");

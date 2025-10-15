@@ -6,13 +6,17 @@
 #include <fs/filesystem.h>
 #include <stdstring.h>
 #include <process/process_manager.h>
+#include <memory/memmap.h>
+#include <memory/mmu.h>
 
 enum NProcFS_PID_Type
 {
     PID,            // PID tasku
     STATE,          // stav tasku (runnable, blocked, ...)
-    FD,             // pocet otevrenych souboru
-    STATUS          // souhrn vsech statistik
+    FD_N,           // pocet otevrenych souboru
+    FD,             // file descriptory otevrenych souboru
+    STATUS,         // souhrn vsech statistik
+    PAGE,           // pocet alokovanych stranek
 };
 
 // virtualni soubor pro proces s PIDem
@@ -52,10 +56,32 @@ class CProcFS_PID_File final : public IFile
 
             // pocet otevrenych souboru
             uint8_t f = 0;
-            if (_type == STATUS || _type == FD)
+            char fd_buffer[64];
+            bzero(fd_buffer, 64);
+            if (_type == STATUS || _type == FD_N || _type == FD)
             {
-                for (int i = 0; i < Max_Process_Opened_Files; i++)
-                    if (task->opened_files[i] != nullptr) f++;
+                for (int i = 0; i < Max_Process_Opened_Files; i++) {
+                    if (task->opened_files[i] != nullptr) {
+                        f++;
+                        itoa(i, fd_buffer + strlen(fd_buffer), 10);
+                        strcat(fd_buffer, " ");
+                    }
+                }
+            }
+
+            // pocet stranek
+            uint32_t* pt = reinterpret_cast<uint32_t*>(task->cpu_context.ttbr0 + mem::MemoryVirtualBase & ~(TTBR_Flags::Inner_Cacheable | TTBR_Flags::Shared));
+            uint32_t page_count = 0;
+            for (unsigned int i = 0; i < PT_Size; i++) {
+                if (pt[i] &  (DL1_Flags::Access_Type_Section_Address
+                            | DL1_Flags::Bufferable
+                            | DL1_Flags::Cacheable
+                            | DL1_Flags::Domain_0
+                            | DL1_Flags::Access_Full_RW
+                            | DL1_Flags::TEX_001
+                            | DL1_Flags::Shareable)){
+                    page_count++;
+                }
             }
 
             char buf[64];
@@ -73,12 +99,20 @@ class CProcFS_PID_File final : public IFile
                     strcat(buf, state_str);
                     strcat(buf, "\nopended files: ");
                     itoa(f, buf + strlen(buf), 10);
+                    strcat(buf, "\npage count: ");
+                    itoa(page_count, buf + strlen(buf), 10);
                     break;
                 case STATE:
                     strcat(buf, state_str);
                     break;
                 case FD:
+                    strcat(buf, fd_buffer);
+                    break;
+                case FD_N:
                     itoa(f, buf, 10);
+                    break;
+                case PAGE:
+                    itoa(page_count, buf, 10);
                     break;
             }
 
@@ -194,11 +228,11 @@ class CProc_FS_Driver : public IFilesystem_Driver
                 }
 
                 if (strncmp(s, "pid", 3) == 0) return new CProcFS_PID_File(pid, NProcFS_PID_Type::PID);
+                if (strncmp(s, "fd_n", 4) == 0) return new CProcFS_PID_File(pid, NProcFS_PID_Type::FD_N);
                 if (strncmp(s, "fd", 2) == 0) return new CProcFS_PID_File(pid, NProcFS_PID_Type::FD);
                 if (strncmp(s, "status", 6) == 0) return new CProcFS_PID_File(pid, NProcFS_PID_Type::STATUS);
                 if (strncmp(s, "state", 5) == 0) return new CProcFS_PID_File(pid, NProcFS_PID_Type::STATE);
-
-                return nullptr;
+                if (strncmp(s, "page", 4) == 0) return new CProcFS_PID_File(pid, NProcFS_PID_Type::PAGE);
             }
             else
             {
