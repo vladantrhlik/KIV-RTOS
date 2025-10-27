@@ -8,15 +8,18 @@
 #import themes.simple: *
 #show: simple-theme.with(
   aspect-ratio: "16-9",
+
 )
-// Reset raw blocks to the same size as normal text,
-// but keep inline raw at the reduced size.
-#show raw.where(block: true): set text(1em / 0.8)
-#set text(size: .8em)
 
+// set size of code (raw text)
+#show raw: set text(size: 18pt)
+#set highlight(
+    fill: rgb("#8acbff"),
+    extent: 4pt,
+    radius: 2pt,
+    top-edge: "ascender"
+)
 
-//#title-slide()
-//#outline-slide(title: "Obsah")
 #title-slide()[
   = Implementace PROC FS
   #v(2em)
@@ -31,7 +34,7 @@
     - celkový počet otevřených souborů
     - informace ke každému tasku (PID, počet otevřených souborů...)
 
-= Struktura FS
+= Struktura
 == Přidání mount pointu
 #tree-list[
 - `DEV`
@@ -41,44 +44,54 @@
 ]
 
 == Složky procesů
-#tree-list()[
-- `PROC`
-    - `1/`
-    - $dots$
-    - `[pid]`/
-        - `state` - stav tasku (runnable, blocked atd)
-        - `fd_n` - počet otevřených souborů
-        - `fd` - otevřené soubory
-        - `pid` - PID tasku
-        - `page` - počet alokovaných stránek
-        - `status` - shrnutí stavu (human readable)
-    - `self/`
-    - $dots$
+#text(size: .7em)[
+    #tree-list()[
+    - `PROC`
+        - `1/`
+        - $dots$
+        - `[pid]`/
+            - `state` - stav tasku (runnable, blocked atd)
+            - `fd_n` - počet otevřených souborů
+            - `fd` - otevřené soubory
+            - `pid` - PID tasku
+            - `page` - počet alokovaných stránek
+            - `status` - shrnutí stavu (human readable)
+        - `self/`
+        - $dots$
+    ]
 ]
 
 == Informace o systému
-#tree-list[
-- `PROC`
-    - $dots$
-    - `sched` - počet runnable, blocked tasků
-    - `tasks` - aktuální počet tasků
-    - `ticks` - počet tiků od startu (obodoba `/proc/uptime`)
+#text(size: .7em)[
+    #tree-list[
+    - `PROC`
+        - $dots$
+        - `sched` - počet runnable, blocked tasků
+        - `tasks` - aktuální počet tasků
+        - `ticks` - počet tiků od startu (obodoba `/proc/uptime`)
+    ]
 ]
 
 = Implementace
 == Mount point
+// přidání struktury pro PROC: mount point + zřetězení, viz minulá přednáška
 - `fs/filesystem.h` -- `CFileSystem`:
 #codly(
     zebra-fill: none,
     display-name: false,
     offset: 142,
-    highlights: ((line: 146, start: 0, end: none, fill: blue),),
+    number-format: none,
+    //highlights: ((line: 149, start: 0, end: none, fill: blue),),
 )
 ```cpp
-TFS_Tree_Node mRoot_Dev;
-TFS_Tree_Node mRoot_Sys;
-TFS_Tree_Node mRoot_Mnt;
-TFS_Tree_Node mRoot_Proc;
+class CFilesystem {
+    ...
+private:
+    TFS_Tree_Node mRoot_Dev;
+    TFS_Tree_Node mRoot_Sys;
+    TFS_Tree_Node mRoot_Mnt;
+    TFS_Tree_Node mRoot_Proc;
+}
 ```
 
 == FS Driver
@@ -96,7 +109,9 @@ class CProc_FS_Driver : public IFilesystem_Driver {
 ```cpp
 class CProcFS_PID_File final : public IFile {
     CProcFS_PID_File(int pid, NProcFS_PID_Type type) { ... }
-    uint32_t Read(char* buffer, uint32_t num) { ... }
+    uint32_t Read(char* buffer, uint32_t num) { 
+        auto task = sProcessMgr.Get_Process_By_PID(_pid);
+    }
 }
 
 enum NProcFS_PID_Type {
@@ -105,14 +120,19 @@ enum NProcFS_PID_Type {
 ```
 
 == Soubor systémové informace
+// přidání typu scheduler info pro získání počtu běžících, blokovaných tasků atd.
 #codly(number-format: none)
 ```cpp
 class CProcFS_Status_File final : public IFile
     CProcFS_Status_File(NProcFS_Status_Type type) { ... }
-    uint32_t Read(char* buffer, uint32_t num) { ... }
+    uint32_t Read(char* buffer, uint32_t num) {
+        sProcessMgr.Get_Scheduler_Info(..., &info);
+    }
 }
 
 enum NProcFS_Status_Type {
     SCHED, TASKS, TICKS 
 };
 ```
+
+= děkuji za pozornost
