@@ -15,9 +15,7 @@ Plán struktury:
  - [x] `tasks` - aktuální počet tasků ~~pidy tasků (?) apod.~~
  - [x] `self` - aktuální proces (stejný výstup jako [aktuální pid]/)
  - [x] `ticks` - počet tiků od startu
-
-každý task bude mít vlastní adresář / soubor (jednodušší)
-
+ - [ ] `fd_n` - celkový počet otevřených souborů
 
 # KIV-RTOS
 An educational operating system for bare-metal Raspberry Pi Zero W (BCM2835-based board).

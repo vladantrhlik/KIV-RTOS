@@ -36,7 +36,7 @@ int main(int argc, char** argv)
 	uint32_t log = pipe("log", 32);
 
 	const char *files[] = {
-		"PROC:self/pid","PROC:self/fd", "PROC:self/fd_n", "PROC:self/status","PROC:self/state","PROC:self/page",
+		"PROC:self/pid","PROC:self/fd", "PROC:self/fd_n", "PROC:1/status","PROC:1/state","PROC:1/page",
 		"PROC:sched","PROC:ticks" 
 	};
 

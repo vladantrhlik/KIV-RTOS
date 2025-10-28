@@ -69,21 +69,6 @@ class CProcFS_PID_File final : public IFile
                 }
             }
 
-            // pocet stranek
-            uint32_t* pt = reinterpret_cast<uint32_t*>(task->cpu_context.ttbr0 + mem::MemoryVirtualBase & ~(TTBR_Flags::Inner_Cacheable | TTBR_Flags::Shared));
-            uint32_t page_count = 0;
-            for (unsigned int i = 0; i < PT_Size; i++) {
-                if (pt[i] &  (DL1_Flags::Access_Type_Section_Address
-                            | DL1_Flags::Bufferable
-                            | DL1_Flags::Cacheable
-                            | DL1_Flags::Domain_0
-                            | DL1_Flags::Access_Full_RW
-                            | DL1_Flags::TEX_001
-                            | DL1_Flags::Shareable)){
-                    page_count++;
-                }
-            }
-
             char buf[64];
             bzero(buf, 64);
 
@@ -95,12 +80,12 @@ class CProcFS_PID_File final : public IFile
                 case STATUS:
                     strcat(buf, "PID: ");
                     itoa(_pid, buf + strlen(buf), 10);
-                    strcat(buf, "\nstate: ");
+                    strcat(buf, "\r\nstate: ");
                     strcat(buf, state_str);
-                    strcat(buf, "\nopended files: ");
+                    strcat(buf, "\r\nopended files: ");
                     itoa(f, buf + strlen(buf), 10);
-                    strcat(buf, "\npage count: ");
-                    itoa(page_count, buf + strlen(buf), 10);
+                    strcat(buf, "\r\npage count: ");
+                    itoa(task->page_count, buf + strlen(buf), 10);
                     break;
                 case STATE:
                     strcat(buf, state_str);
@@ -112,7 +97,7 @@ class CProcFS_PID_File final : public IFile
                     itoa(f, buf, 10);
                     break;
                 case PAGE:
-                    itoa(page_count, buf, 10);
+                    itoa(task->page_count, buf, 10);
                     break;
             }
 
@@ -161,9 +146,9 @@ class CProcFS_Status_File final : public IFile
                 case SCHED:
                     strcat(buf, "runnable: ");
                     itoa(info.running, buf + strlen(buf), 10);
-                    strcat(buf, "\nblocked: ");
+                    strcat(buf, "\r\nblocked: ");
                     itoa(info.blocked, buf + strlen(buf), 10);
-                    strcat(buf, "\nzombie: ");
+                    strcat(buf, "\r\nzombie: ");
                     itoa(info.zombie, buf + strlen(buf), 10);
                     break;
                 case TASKS:

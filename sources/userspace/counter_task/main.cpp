@@ -40,7 +40,7 @@ int main(int argc, char** argv)
 		else
 			counter--;
 
-		tmp = '0' + (counter % 10);
+		tmp = '0' + (counter % 2);
 		write(display_file, &tmp, 1);
 
 		sleep(fast ? 0x400 : 0x600, fast ? 0x1000 : 0x2800);
