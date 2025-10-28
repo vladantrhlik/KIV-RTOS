@@ -470,3 +470,30 @@ bool CProcess_Manager::Get_Scheduler_Info(NGet_Sched_Info_Type type, void* targe
 
     return true;
 }
+
+uint32_t CProcess_Manager::Get_Page_Count() {
+    CProcess_List_Node* node = mProcess_List_Head;
+    uint32_t c = 0;
+    while (node != nullptr)
+    {
+        c += node->task->page_count;
+        node = node->next;
+    }
+
+    return c;
+}
+
+uint32_t CProcess_Manager::Get_File_Count() {
+    CProcess_List_Node* node = mProcess_List_Head;
+    uint32_t c = 0;
+    while (node != nullptr)
+    {
+        for (int i = 0; i < Max_Process_Opened_Files; i++) 
+        {
+            if (node->task->opened_files[i] != nullptr) c++;
+        }
+        node = node->next;
+    }
+
+    return c;
+}

@@ -9,7 +9,7 @@
 #include <memory/memmap.h>
 #include <memory/mmu.h>
 
-enum NProcFS_PID_Type
+enum class NProcFS_PID_Type
 {
     PID,            // PID tasku
     STATE,          // stav tasku (runnable, blocked, ...)
@@ -37,7 +37,7 @@ class CProcFS_PID_File final : public IFile
 
             // prevod statu do citelne formy
             char *state_str;
-            if (_type == STATE || _type == STATUS) 
+            if (_type == NProcFS_PID_Type::STATE || _type == NProcFS_PID_Type::STATUS) 
             {
                 switch (task->state)
                 {
@@ -58,7 +58,7 @@ class CProcFS_PID_File final : public IFile
             uint8_t f = 0;
             char fd_buffer[64];
             bzero(fd_buffer, 64);
-            if (_type == STATUS || _type == FD_N || _type == FD)
+            if (_type == NProcFS_PID_Type::STATUS || _type == NProcFS_PID_Type::FD_N || _type == NProcFS_PID_Type::FD)
             {
                 for (int i = 0; i < Max_Process_Opened_Files; i++) {
                     if (task->opened_files[i] != nullptr) {
@@ -74,10 +74,10 @@ class CProcFS_PID_File final : public IFile
 
             switch (_type)
             {
-                case PID:
+                case NProcFS_PID_Type::PID:
                     itoa(_pid, buf, 10);
                     break;
-                case STATUS:
+                case NProcFS_PID_Type::STATUS:
                     strcat(buf, "PID: ");
                     itoa(_pid, buf + strlen(buf), 10);
                     strcat(buf, "\r\nstate: ");
@@ -87,16 +87,16 @@ class CProcFS_PID_File final : public IFile
                     strcat(buf, "\r\npage count: ");
                     itoa(task->page_count, buf + strlen(buf), 10);
                     break;
-                case STATE:
+                case NProcFS_PID_Type::STATE:
                     strcat(buf, state_str);
                     break;
-                case FD:
+                case NProcFS_PID_Type::FD:
                     strcat(buf, fd_buffer);
                     break;
-                case FD_N:
+                case NProcFS_PID_Type::FD_N:
                     itoa(f, buf, 10);
                     break;
-                case PAGE:
+                case NProcFS_PID_Type::PAGE:
                     itoa(task->page_count, buf, 10);
                     break;
             }
@@ -113,11 +113,13 @@ class CProcFS_PID_File final : public IFile
         NProcFS_PID_Type _type;
 };
 
-enum NProcFS_Status_Type
+enum class NProcFS_Status_Type
 {
     SCHED = 0,                  // pocty procesu v ruznych stavech
     TASKS,                      // celkovy pocet tasku
-    TICKS                       // pocet tiku od startu
+    TICKS,                      // pocet tiku od startu
+    FD_N,                       // celkovy pocet otevrenych souboru
+    PAGE,                       // celkovy pocet alokovanych stranek
 };
 
 // virtualni nePIDový soubor
@@ -143,7 +145,7 @@ class CProcFS_Status_File final : public IFile
 
             switch (_type)
             {
-                case SCHED:
+                case NProcFS_Status_Type::SCHED:
                     strcat(buf, "runnable: ");
                     itoa(info.running, buf + strlen(buf), 10);
                     strcat(buf, "\r\nblocked: ");
@@ -151,13 +153,19 @@ class CProcFS_Status_File final : public IFile
                     strcat(buf, "\r\nzombie: ");
                     itoa(info.zombie, buf + strlen(buf), 10);
                     break;
-                case TASKS:
+                case NProcFS_Status_Type::TASKS:
                     itoa(info.total, buf, 10);
                     break;
-                case TICKS:
+                case NProcFS_Status_Type::TICKS:
                     uint32_t ticks;
                     sProcessMgr.Get_Scheduler_Info(NGet_Sched_Info_Type::Tick_Count, &ticks);
                     itoa(ticks, buf, 10);
+                    break;
+                case NProcFS_Status_Type::FD_N:
+                    itoa(sProcessMgr.Get_File_Count(), buf, 10);
+                    break;
+                case NProcFS_Status_Type::PAGE:
+                    itoa(sProcessMgr.Get_Page_Count(), buf, 10);
                     break;
             };
 
@@ -224,6 +232,8 @@ class CProc_FS_Driver : public IFilesystem_Driver
                 if (strncmp(path, "sched", 5) == 0) return new CProcFS_Status_File(NProcFS_Status_Type::SCHED);
                 if (strncmp(path, "tasks", 5) == 0) return new CProcFS_Status_File(NProcFS_Status_Type::TASKS);
                 if (strncmp(path, "ticks", 5) == 0) return new CProcFS_Status_File(NProcFS_Status_Type::TICKS);
+                if (strncmp(path, "fd_n", 4) == 0) return new CProcFS_Status_File(NProcFS_Status_Type::FD_N);
+                if (strncmp(path, "page", 4) == 0) return new CProcFS_Status_File(NProcFS_Status_Type::PAGE);
             }
 
             return nullptr;

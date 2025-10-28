@@ -100,6 +100,10 @@ class CProcess_Manager
 
         // ziska info z planovace
         bool Get_Scheduler_Info(NGet_Sched_Info_Type type, void* target);
+        // ziska celkovy pocet alokovanch stranek tasky
+        uint32_t Get_Page_Count();
+        // ziska celkovy pocet otevrenyh souboru
+        uint32_t Get_File_Count();
 };
 
 extern CProcess_Manager sProcessMgr;

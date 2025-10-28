@@ -10,12 +10,13 @@ Plán struktury:
     - [x] `fd_n` - počet otevřených souborů
     - [x] `fd` - otevřené soubory
     - [x] `pid` - PID (n)
-    - [ ] `page` - počet alokovaných stránek
+    - [x] `page` - počet alokovaných stránek
  - [x] `sched` - počet runnable, blocked tasků
  - [x] `tasks` - aktuální počet tasků ~~pidy tasků (?) apod.~~
  - [x] `self` - aktuální proces (stejný výstup jako [aktuální pid]/)
  - [x] `ticks` - počet tiků od startu
- - [ ] `fd_n` - celkový počet otevřených souborů
+ - [x] `fd_n` - celkový počet otevřených souborů
+ - [x] `page` - celkový počet alokovaných stránek
 
 # KIV-RTOS
 An educational operating system for bare-metal Raspberry Pi Zero W (BCM2835-based board).

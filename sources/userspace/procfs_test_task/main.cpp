@@ -37,7 +37,7 @@ int main(int argc, char** argv)
 
 	const char *files[] = {
 		"PROC:self/pid","PROC:self/fd", "PROC:self/fd_n", "PROC:1/status","PROC:1/state","PROC:1/page",
-		"PROC:sched","PROC:ticks" 
+		"PROC:sched","PROC:ticks","PROC:fd_n", "PROC:page"
 	};
 
 	int file_count = sizeof(files) / sizeof(char*);
