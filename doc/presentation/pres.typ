@@ -40,7 +40,7 @@
 - `DEV`
 - `MNT`
 - `SYS`
-- #highlight[`PROC`]
+- `PROC`
 ]
 
 == Složky procesů
@@ -69,6 +69,8 @@
         - `sched` - počet runnable, blocked tasků
         - `tasks` - aktuální počet tasků
         - `ticks` - počet tiků od startu (obodoba `/proc/uptime`)
+        - `fd_n` - celkový počet otevřených souborů
+        - `page` - celkový počet alokovaných stránek
     ]
 ]
 
@@ -121,18 +123,19 @@ enum NProcFS_PID_Type {
 
 == Soubor systémové informace
 // přidání typu scheduler info pro získání počtu běžících, blokovaných tasků atd.
+// přidání fcí pro celkový page a file count (spoják procesů sProcMgr je private)
 #codly(number-format: none)
 ```cpp
 class CProcFS_Status_File final : public IFile
     CProcFS_Status_File(NProcFS_Status_Type type) { ... }
     uint32_t Read(char* buffer, uint32_t num) {
         sProcessMgr.Get_Scheduler_Info(..., &info);
+        sProcessMgr.Get_Page_Count();
+        sProcessMgr.Get_File_Count();
     }
 }
 
-enum NProcFS_Status_Type {
-    SCHED, TASKS, TICKS 
-};
+enum NProcFS_Status_Type { SCHED, TASKS, TICKS, FD_N, PAGE };
 ```
 
 = děkuji za pozornost
