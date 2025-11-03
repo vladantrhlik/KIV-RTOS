@@ -9,6 +9,8 @@
 #include <memory/memmap.h>
 #include <memory/mmu.h>
 
+constexpr uint32_t Max_ProcFS_File_Len = 64;
+
 enum class NProcFS_PID_Type
 {
     PID,            // PID tasku
@@ -23,7 +25,10 @@ enum class NProcFS_PID_Type
 class CProcFS_PID_File final : public IFile
 {
     public:
-        CProcFS_PID_File(int pid, NProcFS_PID_Type type) : IFile(NFile_Type_Major::Character), _pid(pid), _type(type) { }
+        CProcFS_PID_File(int pid, NProcFS_PID_Type type) : IFile(NFile_Type_Major::Character), _pid(pid), _type(type) 
+        {
+            //
+        }
 
         ~CProcFS_PID_File()
         {
@@ -41,7 +46,8 @@ class CProcFS_PID_File final : public IFile
             {
                 switch (task->state)
                 {
-                    case NTask_State::New: state_str = const_cast<char*>("new"); break;
+                    case NTask_State::New: 
+                        state_str = const_cast<char*>("new"); break;
                     case NTask_State::Runnable: 
                     case NTask_State::Running: 
                         state_str = const_cast<char*>("runnable"); 
@@ -56,8 +62,8 @@ class CProcFS_PID_File final : public IFile
 
             // pocet otevrenych souboru
             uint8_t f = 0;
-            char fd_buffer[64];
-            bzero(fd_buffer, 64);
+            char fd_buffer[Max_Process_Opened_Files * 3];
+            bzero(fd_buffer, Max_Process_Opened_Files * 3);
             if (_type == NProcFS_PID_Type::STATUS || _type == NProcFS_PID_Type::FD_N || _type == NProcFS_PID_Type::FD)
             {
                 for (int i = 0; i < Max_Process_Opened_Files; i++) {
@@ -69,8 +75,8 @@ class CProcFS_PID_File final : public IFile
                 }
             }
 
-            char buf[64];
-            bzero(buf, 64);
+            char buf[Max_ProcFS_File_Len];
+            bzero(buf, Max_ProcFS_File_Len);
 
             switch (_type)
             {
@@ -101,11 +107,12 @@ class CProcFS_PID_File final : public IFile
                     break;
             }
 
-            int l = strlen(buf);
+            int len_s = strlen(buf); // celkova delka dat
+            int len = len_s < num ? len_s : num; // delka dat k zapsani do bufferu - min(len_s, num)
             bzero(buffer, num);
-            strncpy(buffer, buf, l < num ? l : num);
+            strncpy(buffer, buf, len);
 
-            return 1;
+            return len;
         }
 
     private:
@@ -127,7 +134,10 @@ class CProcFS_Status_File final : public IFile
 {
     public:
 
-        CProcFS_Status_File(NProcFS_Status_Type type) : IFile(NFile_Type_Major::Character), _type(type) { }
+        CProcFS_Status_File(NProcFS_Status_Type type) : IFile(NFile_Type_Major::Character), _type(type) 
+        {
+            //
+        }
 
         ~CProcFS_Status_File()
         {
@@ -136,8 +146,8 @@ class CProcFS_Status_File final : public IFile
 
         virtual uint32_t Read(char* buffer, uint32_t num) override
         {
-            char buf[64];
-            bzero(buf, 64);
+            char buf[Max_ProcFS_File_Len];
+            bzero(buf, Max_ProcFS_File_Len);
 
             // ziskani poctu bezicich, blokovanych atd. procesu
             CProcess_Summary_Info info;
@@ -169,10 +179,12 @@ class CProcFS_Status_File final : public IFile
                     break;
             };
 
-            int l = strlen(buf);
-            strncpy(buffer, buf, l < num ? l : num);
+            int len_s = strlen(buf); // celkova delka dat
+            int len = len_s < num ? len_s : num; // delka dat k zapsani do bufferu - min(len_s, num)
+            bzero(buffer, num);
+            strncpy(buffer, buf, len);
 
-            return 1;
+            return len;
         }
     private:
         NProcFS_Status_Type _type;
@@ -182,7 +194,10 @@ class CProcFS_Status_File final : public IFile
 class CProc_FS_Driver : public IFilesystem_Driver
 {
 	public:
-        virtual void On_Register() override { };
+        virtual void On_Register() override 
+        {
+            //
+        };
 
         virtual IFile* Open_File(const char* path, NFile_Open_Mode mode) override
         {
@@ -220,20 +235,20 @@ class CProc_FS_Driver : public IFilesystem_Driver
                     if (!task) return nullptr;
                 }
 
-                if (strncmp(s, "pid", 3) == 0) return new CProcFS_PID_File(pid, NProcFS_PID_Type::PID);
-                if (strncmp(s, "fd_n", 4) == 0) return new CProcFS_PID_File(pid, NProcFS_PID_Type::FD_N);
-                if (strncmp(s, "fd", 2) == 0) return new CProcFS_PID_File(pid, NProcFS_PID_Type::FD);
-                if (strncmp(s, "status", 6) == 0) return new CProcFS_PID_File(pid, NProcFS_PID_Type::STATUS);
-                if (strncmp(s, "state", 5) == 0) return new CProcFS_PID_File(pid, NProcFS_PID_Type::STATE);
-                if (strncmp(s, "page", 4) == 0) return new CProcFS_PID_File(pid, NProcFS_PID_Type::PAGE);
+                if (strncmp(s, "pid", MaxFilenameLength) == 0) return new CProcFS_PID_File(pid, NProcFS_PID_Type::PID);
+                if (strncmp(s, "fd_n", MaxFilenameLength) == 0) return new CProcFS_PID_File(pid, NProcFS_PID_Type::FD_N);
+                if (strncmp(s, "fd", MaxFilenameLength) == 0) return new CProcFS_PID_File(pid, NProcFS_PID_Type::FD);
+                if (strncmp(s, "status", MaxFilenameLength) == 0) return new CProcFS_PID_File(pid, NProcFS_PID_Type::STATUS);
+                if (strncmp(s, "state", MaxFilenameLength) == 0) return new CProcFS_PID_File(pid, NProcFS_PID_Type::STATE);
+                if (strncmp(s, "page", MaxFilenameLength) == 0) return new CProcFS_PID_File(pid, NProcFS_PID_Type::PAGE);
             }
             else
             {
-                if (strncmp(path, "sched", 5) == 0) return new CProcFS_Status_File(NProcFS_Status_Type::SCHED);
-                if (strncmp(path, "tasks", 5) == 0) return new CProcFS_Status_File(NProcFS_Status_Type::TASKS);
-                if (strncmp(path, "ticks", 5) == 0) return new CProcFS_Status_File(NProcFS_Status_Type::TICKS);
-                if (strncmp(path, "fd_n", 4) == 0) return new CProcFS_Status_File(NProcFS_Status_Type::FD_N);
-                if (strncmp(path, "page", 4) == 0) return new CProcFS_Status_File(NProcFS_Status_Type::PAGE);
+                if (strncmp(path, "sched", MaxFilenameLength) == 0) return new CProcFS_Status_File(NProcFS_Status_Type::SCHED);
+                if (strncmp(path, "tasks", MaxFilenameLength) == 0) return new CProcFS_Status_File(NProcFS_Status_Type::TASKS);
+                if (strncmp(path, "ticks", MaxFilenameLength) == 0) return new CProcFS_Status_File(NProcFS_Status_Type::TICKS);
+                if (strncmp(path, "fd_n", MaxFilenameLength) == 0) return new CProcFS_Status_File(NProcFS_Status_Type::FD_N);
+                if (strncmp(path, "page", MaxFilenameLength) == 0) return new CProcFS_Status_File(NProcFS_Status_Type::PAGE);
             }
 
             return nullptr;
