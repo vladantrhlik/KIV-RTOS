@@ -32,6 +32,18 @@ extern "C" unsigned int __tilt_task_elf_len;
 extern "C" unsigned char __procfs_test_task_elf[];
 extern "C" unsigned int __procfs_test_task_elf_len;
 
+extern "C" unsigned char __t1_patient_elf[];
+extern "C" unsigned int __t1_patient_elf_len;
+
+extern "C" unsigned char __t2_sensor_elf[];
+extern "C" unsigned int __t2_sensor_elf_len;
+
+extern "C" unsigned char __t3_insulin_elf[];
+extern "C" unsigned int __t3_insulin_elf_len;
+
+extern "C" unsigned char __t4_display_elf[];
+extern "C" unsigned int __t4_display_elf_len;
+
 extern "C" int _kernel_main(void)
 {
 	// inicializace souboroveho systemu
@@ -41,15 +53,16 @@ extern "C" int _kernel_main(void)
 	sProcessMgr.Create_Process(__init_task_elf, __init_task_elf_len, true);
 
 	// vytvoreni vsech tasku
-	// TODO: presunuti do init procesu a nejake inicializacni sekce
 	/*
-	sProcessMgr.Create_Process(__sos_task_elf, __sos_task_elf_len, false);
-	sProcessMgr.Create_Process(__oled_task_elf, __oled_task_elf_len, false);
-	sProcessMgr.Create_Process(__tilt_task_elf, __tilt_task_elf_len, false);
-	*/
 	sProcessMgr.Create_Process(__counter_task_elf, __counter_task_elf_len, false);
 	sProcessMgr.Create_Process(__logger_task_elf, __logger_task_elf_len, false);
 	sProcessMgr.Create_Process(__procfs_test_task_elf, __procfs_test_task_elf_len, false);
+	*/
+
+	sProcessMgr.Create_Process(__t1_patient_elf, __t1_patient_elf_len, false);
+	sProcessMgr.Create_Process(__t2_sensor_elf, __t2_sensor_elf_len, false);
+	sProcessMgr.Create_Process(__t3_insulin_elf, __t3_insulin_elf_len, false);
+	sProcessMgr.Create_Process(__t4_display_elf, __t4_display_elf_len, false);
 
 	// zatim zakazeme IRQ casovace
 	sInterruptCtl.Disable_Basic_IRQ(hal::IRQ_Basic_Source::Timer);

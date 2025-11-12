@@ -65,3 +65,9 @@ ADD_USERSPACE_EXECUTABLE(logger_task logger_task/main.cpp)
 ADD_USERSPACE_EXECUTABLE(counter_task counter_task/main.cpp)
 ADD_USERSPACE_EXECUTABLE(tilt_task tilt_task/main.cpp)
 ADD_USERSPACE_EXECUTABLE(procfs_test_task procfs_test_task/main.cpp)
+
+# tasky SP2
+ADD_USERSPACE_EXECUTABLE(t1_patient t1_patient/main.cpp)
+ADD_USERSPACE_EXECUTABLE(t2_sensor t2_sensor/main.cpp)
+ADD_USERSPACE_EXECUTABLE(t3_insulin t3_insulin/main.cpp)
+ADD_USERSPACE_EXECUTABLE(t4_display t4_display/main.cpp)
