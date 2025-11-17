@@ -14,24 +14,6 @@ extern "C" void Timer_Callback()
 extern "C" unsigned char __init_task_elf[];
 extern "C" unsigned int __init_task_elf_len;
 
-extern "C" unsigned char __sos_task_elf[];
-extern "C" unsigned int __sos_task_elf_len;
-
-extern "C" unsigned char __oled_task_elf[];
-extern "C" unsigned int __oled_task_elf_len;
-
-extern "C" unsigned char __logger_task_elf[];
-extern "C" unsigned int __logger_task_elf_len;
-
-extern "C" unsigned char __counter_task_elf[];
-extern "C" unsigned int __counter_task_elf_len;
-
-extern "C" unsigned char __tilt_task_elf[];
-extern "C" unsigned int __tilt_task_elf_len;
-
-extern "C" unsigned char __procfs_test_task_elf[];
-extern "C" unsigned int __procfs_test_task_elf_len;
-
 extern "C" unsigned char __t1_patient_elf[];
 extern "C" unsigned int __t1_patient_elf_len;
 
