@@ -3,4 +3,5 @@
 #include "../../userspace/build/src_t3_insulin.h"
 #include "../../userspace/build/src_t4_display.h"
 #include "../../userspace/build/src_init_task.h"
+#include "../../userspace/build/src_logger_task.h"
 // az budeme umet cist SD kartu, tento soubor uplne zmizi

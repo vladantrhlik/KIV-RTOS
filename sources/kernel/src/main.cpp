@@ -14,6 +14,9 @@ extern "C" void Timer_Callback()
 extern "C" unsigned char __init_task_elf[];
 extern "C" unsigned int __init_task_elf_len;
 
+extern "C" unsigned char __logger_task_elf[];
+extern "C" unsigned int __logger_task_elf_len;
+
 extern "C" unsigned char __t1_patient_elf[];
 extern "C" unsigned int __t1_patient_elf_len;
 
@@ -45,6 +48,7 @@ extern "C" int _kernel_main(void)
 	sProcessMgr.Create_Process(__t2_sensor_elf, __t2_sensor_elf_len, false);
 	sProcessMgr.Create_Process(__t3_insulin_elf, __t3_insulin_elf_len, false);
 	sProcessMgr.Create_Process(__t4_display_elf, __t4_display_elf_len, false);
+	sProcessMgr.Create_Process(__logger_task_elf, __logger_task_elf_len, false);
 
 	// zatim zakazeme IRQ casovace
 	sInterruptCtl.Disable_Basic_IRQ(hal::IRQ_Basic_Source::Timer);
