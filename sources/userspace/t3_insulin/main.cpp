@@ -12,8 +12,10 @@ int main(int argc, char** argv)
 	uint32_t sem_23 = open("SYS:sem/sem2to3", NFile_Open_Mode::Read_Write);
 	uint32_t pipe_from2 = pipe("2to3", sizeof(float));
 	
-
 	uint32_t log = pipe("log", 32);
+
+	float prev_avg = 0;
+
 	while(true)
 	{
 		wait(sem_23);
@@ -21,15 +23,16 @@ int main(int argc, char** argv)
 		uint32_t v = read(pipe_from2, (char*)(&avg), sizeof(float));
 
 		if (v > 0) {
-			// TODO pid regulátor pro výpočet insulinu
-			float D = -.5;
+			float D = .1;
 			float P = .1;
-			float ins = D + P * avg;
+			float ins = D * (prev_avg - avg) + P * avg;
 			if (ins < 0) ins = 0;
 
 			write(pipe_to4, (char*)(&ins), sizeof(float));
 			write(pipe_to1, (char*)(&ins), sizeof(float));
 			notify(sem_31);
+
+			prev_avg = avg;
 		}
 	}
     return 0;

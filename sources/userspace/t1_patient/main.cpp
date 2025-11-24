@@ -25,8 +25,6 @@ int main(int argc, char** argv)
 
 		// send g to task 2
 		write(pipe_to2, (char*)(&g), sizeof(float));
-
-		write(log, "1", 2);
 		
 		wait(sem_31, 1, 0x100);
 		float ins;
@@ -38,7 +36,7 @@ int main(int argc, char** argv)
 		char tmp = '0';
 		read(switch1_file, &tmp, 1);
 		fast = (tmp == '1');
-		sleep(fast ? 0x100 : 0x500);
+		sleep(fast ? 0x100 : 0x200);
 	}
     return 0;
 }

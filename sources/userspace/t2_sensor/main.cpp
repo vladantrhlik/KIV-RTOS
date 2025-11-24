@@ -29,11 +29,9 @@ int main(int argc, char** argv)
 			if (count == WINDOW) {
 				float avg = sum / WINDOW;
 
-				// send data to display
 				write(pipe_to4, (char*)(&avg), sizeof(float));
-
-				// TODO: send avg to 3
 				write(pipe_to3, (char*)(&avg), sizeof(float));
+
 				notify(sem_23);
 
 				count = 0;

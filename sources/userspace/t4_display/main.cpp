@@ -66,7 +66,7 @@ int main(int argc, char** argv)
 	uint32_t pipe_from2 = pipe("2to4", sizeof(float));
 	uint32_t pipe_from3 = pipe("3to4", sizeof(float));
 
-	float glu_avg = -1, ins = -1;
+	float glu_avg = 0, ins = 0;
 
 	char buffer[64], float_buffer[64];
 	bzero(buffer, 64);
