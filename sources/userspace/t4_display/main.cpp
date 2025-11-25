@@ -1,6 +1,7 @@
 #include <stdfile.h>
 #include <stdstring.h>
 #include <stdfile.h>
+#include <oled.h>
 #include <drivers/bridges/uart_defs.h>
 
 void print_float(uint32_t fd, float value, int spaces) {
@@ -60,6 +61,12 @@ int main(int argc, char** argv)
 	params.char_length = NUART_Char_Length::Char_8;
 	ioctl(uart_file, NIOCtl_Operation::Set_Params, &params);
 	*/
+	// oled
+	COLED_Display disp("DEV:oled");
+	disp.Clear(false);
+	disp.Put_String(0, 0, "KIV-RTOS sem. 2");
+	disp.Put_String(0, 16, "Vladan Trhlik");
+	disp.Flip();
 
 	// IPC
 	uint32_t log = pipe("log", 32);
@@ -84,12 +91,21 @@ int main(int argc, char** argv)
 			ftoa(float_buffer, 64, glu_avg, 3);
 			strcat(buffer, float_buffer);
 
+			int new_line_pos = strlen(buffer);
+
 			strcat(buffer, "\nINS: ");
 			ftoa(float_buffer, 64, ins, 3);
 			strcat(buffer, float_buffer);
 			strcat(buffer, "\n");
 
 			write(log, buffer, strlen(buffer) + 1);
+
+			buffer[new_line_pos] = '\0';
+			// update oled
+			disp.Clear(false);
+			disp.Put_String(0, 0, buffer);
+			disp.Put_String(0, 16, buffer + new_line_pos + 1);
+			disp.Flip();
 		}
 	}
     return 0;

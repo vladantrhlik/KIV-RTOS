@@ -18,6 +18,8 @@ int main(int argc, char** argv)
 
 	uint32_t switch1_file = open("DEV:gpio/4", NFile_Open_Mode::Read_Only);
 
+	uint32_t onesecond = 0x400;
+
 	while (true)
 	{
 		patient.Step();
@@ -36,7 +38,7 @@ int main(int argc, char** argv)
 		char tmp = '0';
 		read(switch1_file, &tmp, 1);
 		fast = (tmp == '1');
-		sleep(fast ? 0x100 : 0x200);
+		sleep(fast ? (onesecond / 20) : onesecond);
 	}
     return 0;
 }
